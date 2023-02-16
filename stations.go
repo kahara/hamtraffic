@@ -1,6 +1,7 @@
 package hamtraffic
 
 import (
+	"github.com/logocomune/maidenhead"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
 	"github.com/rs/zerolog/log"
@@ -19,6 +20,7 @@ type Locale struct {
 	Name       string
 	Population int
 	Geometry   orb.Point
+	Locators   []string
 }
 
 func NewWorld() *World {
@@ -63,10 +65,32 @@ func loadCities() []Locale {
 		// Geometry
 		point := feature.Geometry.(orb.Point)
 
+		// Locator
+		var (
+			locator  string
+			locators []string
+		)
+
+		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.FieldPrecision)
+		locators = append(locators, locator)
+
+		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.SquarePrecision)
+		locators = append(locators, locator)
+
+		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.SubSquarePrecision)
+		locators = append(locators, locator)
+
+		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.ExtendedSquarePrecision)
+		locators = append(locators, locator)
+
+		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.SubExtendedSquarePrecision)
+		locators = append(locators, locator)
+
 		locales = append(locales, Locale{
 			Name:       name,
 			Population: pop,
 			Geometry:   point,
+			Locators:   locators,
 		})
 
 		log.Trace().
