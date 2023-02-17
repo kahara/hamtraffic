@@ -1,111 +1,47 @@
 package hamtraffic
 
 import (
-	"github.com/logocomune/maidenhead"
-	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geojson"
+	"fmt"
 	"github.com/rs/zerolog/log"
-	"os"
-	"sort"
-	"strconv"
 )
 
-const CityDataPath = "data/export.geojson"
+const (
+	Prefix = "X0"
+)
 
-type World struct {
-	Locales []Locale
+var nextSuffix = 0
+
+type Band struct {
+	Name            string
+	CenterFrequency float64
+	Bandwidth       float64
+	Bias            float64
 }
 
-type Locale struct {
-	Name       string
-	Population int
-	Geometry   orb.Point
-	Locators   []string
+func NewBands() []*Band {
+	var bands []*Band
+
+	return bands
 }
 
-func NewWorld() *World {
-	return &World{
-		Locales: loadCities(),
-	}
+type Station struct {
+	Callsing string
+	Bands    []*Band
+	Locale   *Locale
 }
 
-func loadCities() []Locale {
-	var (
-		locales []Locale
-	)
-
-	data, err := os.ReadFile(CityDataPath)
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
+func NewStation(w *World) *Station {
+	if nextSuffix > 9999 {
+		log.Panic().Int("suffix", nextSuffix).Msg("too many suffixes")
 	}
 
-	fc, _ := geojson.UnmarshalFeatureCollection(data)
+	callsign := fmt.Sprintf("%s%04d", Prefix, nextSuffix)
 
-	count := 0
-	for _, feature := range fc.Features {
-		// Name
-		name := feature.Properties.MustString("name:en", "")
-		if name == "" {
-			name = feature.Properties.MustString("name", "")
-			if name == "" {
-				continue
-			}
-		}
+	nextSuffix += 1
 
-		// Population
-		p := feature.Properties.MustString("population", "")
-		if p == "" {
-			continue
-		}
-		pop, err := strconv.Atoi(p)
-		if err != nil {
-			continue
-		}
-
-		// Geometry
-		point := feature.Geometry.(orb.Point)
-
-		// Locator
-		var (
-			locator  string
-			locators []string
-		)
-
-		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.FieldPrecision)
-		locators = append(locators, locator)
-
-		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.SquarePrecision)
-		locators = append(locators, locator)
-
-		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.SubSquarePrecision)
-		locators = append(locators, locator)
-
-		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.ExtendedSquarePrecision)
-		locators = append(locators, locator)
-
-		locator, _ = maidenhead.Locator(point.Lat(), point.Lon(), maidenhead.SubExtendedSquarePrecision)
-		locators = append(locators, locator)
-
-		locales = append(locales, Locale{
-			Name:       name,
-			Population: pop,
-			Geometry:   point,
-			Locators:   locators,
-		})
-
-		log.Trace().
-			Str("name", name).
-			Int("population", pop).
-			Any("point", point).
-			Msg("")
-		count += 1
+	return &Station{
+		Callsing: callsign,
+		Bands:    NewBands(),
+		Locale:   w.RandomLocale(),
 	}
-
-	sort.Slice(locales, func(i, j int) bool {
-		return locales[i].Population < locales[j].Population
-	})
-
-	log.Info().Int("cities", count).Msg("City loading complete")
-
-	return locales
 }

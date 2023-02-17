@@ -1,6 +1,12 @@
 # hamtraffic
 
-## Positioning stations
+## Fake hams on air
+
+In an attempt to make it most unlikely to facepalm and get things mixed up with real hams, all callsigns are generated
+with prefix `X0`, which as of 2023-02-17 isn't allocated. The prefix is followed by a suffix of four numbers. The
+suffixes are created in order. This range will provide 10k unique callsigns, which is enough for this purpose.
+
+### Positioning stations
 
 To make the generated data feel less synthetic, stations get their locations from around 7.5k cities around the world.
 The following query was run in
