@@ -5,6 +5,7 @@
 All configuration takes place over environment variables. Here are the defaults:
 
 ```
+FREERUN=true
 STATION_COUNT=10000
 ```
 
