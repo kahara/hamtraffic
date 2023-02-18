@@ -1,5 +1,13 @@
 # hamtraffic
 
+## Configuration
+
+All configuration takes place over environment variables. Here are the defaults:
+
+```
+STATION_COUNT=10000
+```
+
 ## Fake hams on air
 
 In an attempt to make it most unlikely to facepalm and get things mixed up with real hams, all callsigns are generated
