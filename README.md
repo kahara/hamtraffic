@@ -10,9 +10,10 @@ STATION_COUNT=10000
 
 ## Fake hams on air
 
-In an attempt to make it most unlikely to facepalm and get things mixed up with real hams, all callsigns are generated
-with prefix `X0`, which as of 2023-02-17 isn't allocated. The prefix is followed by a suffix of four numbers. The
-suffixes are created in order. This range will provide 10k unique callsigns, which is enough for this purpose.
+To make it less likely to facepalm and get things mixed up with real hams, all callsigns are generated with prefix `X0`,
+which [as of 2023-02-17 isn't allocated](https://en.wikipedia.org/wiki/Amateur_radio_call_signs).
+The prefix is followed by a suffix of four letters from `AAAA` to `PPPP`. This range will provide around 65.5k unique
+callsigns, which is enough for this purpose at this time.
 
 ### Positioning stations
 

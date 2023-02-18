@@ -9,7 +9,7 @@ const (
 	Prefix = "X0"
 )
 
-var nextSuffix = 0
+var nextSuffix = -1
 
 type Band struct {
 	Name            string
@@ -31,13 +31,36 @@ type Station struct {
 }
 
 func NewStation(w *World) *Station {
-	if nextSuffix > 9999 {
+	nextSuffix += 1
+	if nextSuffix > MaxStationCount-1 {
 		log.Panic().Int("suffix", nextSuffix).Msg("too many suffixes")
 	}
 
-	callsign := fmt.Sprintf("%s%04d", Prefix, nextSuffix)
-
-	nextSuffix += 1
+	suffix := fmt.Sprintf("%04X", nextSuffix)
+	callsign := Prefix
+	for _, c := range suffix {
+		callsign += func(c rune) string {
+			lookup := map[rune]rune{
+				'0': 'A',
+				'1': 'B',
+				'2': 'C',
+				'3': 'D',
+				'4': 'E',
+				'5': 'F',
+				'6': 'G',
+				'7': 'H',
+				'8': 'I',
+				'9': 'J',
+				'A': 'K',
+				'B': 'L',
+				'C': 'M',
+				'D': 'N',
+				'E': 'O',
+				'F': 'P',
+			}
+			return string(lookup[c])
+		}(c)
+	}
 
 	return &Station{
 		Callsing: callsign,

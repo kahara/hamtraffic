@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	MaxStationCount = 10000
+	MaxStationCount = 65536
 )
 
 type Config struct {
