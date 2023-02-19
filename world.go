@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-const CityDataPath = "data/export.geojson"
+const CityDataPath = "data/cities.geojson"
 
 type Locale struct {
 	Name       string
