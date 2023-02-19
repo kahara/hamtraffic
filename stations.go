@@ -158,7 +158,7 @@ type Station struct {
 func NewStation(config *Config, w *World) *Station {
 	nextSuffix += 1
 	if nextSuffix > MaxStationCount-1 {
-		log.Panic().Int("suffix", nextSuffix).Msg("too many suffixes, passing out")
+		log.Fatal().Int("suffix", nextSuffix).Msg("too many suffixes, passing out")
 	}
 
 	suffix := fmt.Sprintf("%04X", nextSuffix)
@@ -202,10 +202,6 @@ func NewStation(config *Config, w *World) *Station {
 			ChannelSpacing:  pair.ChannelSpacing,
 			TimeSpacing:     pair.TimeSpacing,
 		})
-	}
-
-	for _, x := range bandModePairs {
-		log.Info().Any("bandmodepair", x).Msg("")
 	}
 
 	return &Station{
