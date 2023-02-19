@@ -10,7 +10,7 @@ RUNTIME= # n/a; this is parsed into a time.Duration
 STATION_COUNT=10000
 BANDS=160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.40,2m:0.25
 MODES=FT8:1.0,FT4:0.25,CW:0.15
-STICKINESS=0.95
+STICKINESS=0.995
 ```
 
 `BANDS` gives a relative weight for each, so that with the default setting above, it's four times more likely that a

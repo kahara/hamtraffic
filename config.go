@@ -14,6 +14,7 @@ const (
 	MaxStationCount     = 65536
 	DefaultBands        = "160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.25,2m:0.15"
 	DefaultModes        = "FT8:1.0,FT4:0.25,CW:0.15"
+	DefaultStickiness   = 0.995
 )
 
 type Config struct {
@@ -21,6 +22,7 @@ type Config struct {
 	Runtime       *time.Duration
 	StationCount  int
 	BandModePairs []BandModePair
+	Stickiness    float64
 }
 
 func NewConfig() *Config {
@@ -79,6 +81,18 @@ func NewConfig() *Config {
 		modes = DefaultModes
 	}
 	config.BandModePairs = NewBandModePairs(bands, modes)
+
+	// Stickiness
+	stick := os.Getenv("STICKINESS")
+	if stick == "" {
+		config.Stickiness = DefaultStickiness
+	} else {
+		s, err := strconv.ParseFloat(stick, 64)
+		if err != nil {
+			log.Fatal().Err(err).Msg("")
+		}
+		config.Stickiness = s
+	}
 
 	log.Info().Any("config", config).Msg("Configuration complete")
 

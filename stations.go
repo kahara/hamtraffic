@@ -149,7 +149,7 @@ Loop:
 }
 
 type Station struct {
-	Callsing            string
+	Callsign            string
 	Antenna             string
 	BandModePairs       []BandModePair
 	CurrentBandModePair *BandModePair
@@ -206,7 +206,7 @@ func NewStation(config *Config, w *World) *Station {
 	}
 
 	station := Station{
-		Callsing:      callsign,
+		Callsign:      callsign,
 		Antenna:       antenna,
 		BandModePairs: bandModePairs,
 		Locale:        w.RandomLocale(),
@@ -215,4 +215,11 @@ func NewStation(config *Config, w *World) *Station {
 	station.CurrentBandModePair = &station.BandModePairs[rand.Intn(len(station.BandModePairs))]
 
 	return &station
+}
+
+func (s *Station) Tick() {
+	if rand.Float64() > config.Stickiness {
+		s.CurrentBandModePair = &s.BandModePairs[rand.Intn(len(s.BandModePairs))]
+		log.Debug().Str("callsign", s.Callsign).Any("bandmodepair", s.CurrentBandModePair).Msg("Station changed band and mode")
+	}
 }

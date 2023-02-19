@@ -5,21 +5,26 @@ import (
 	"time"
 )
 
+var (
+	config *Config
+	world  *World
+)
+
 func Init() {
 	var (
 		stations        []*Station
 		start, deadline time.Time
 	)
 
-	config := NewConfig()
-	world := NewWorld()
+	config = NewConfig()
+	world = NewWorld()
 
 	for i := 0; i < config.StationCount; i++ {
 		stations = append(stations, NewStation(config, world))
 	}
 
 	for _, station := range stations {
-		log.Info().Any("station", station).Msg("")
+		log.Debug().Any("station", station).Msg("")
 	}
 
 	// Start running at the start of next minute
