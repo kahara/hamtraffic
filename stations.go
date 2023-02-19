@@ -149,10 +149,11 @@ Loop:
 }
 
 type Station struct {
-	Callsing      string
-	Antenna       string
-	BandModePairs []BandModePair
-	Locale        *Locale
+	Callsing            string
+	Antenna             string
+	BandModePairs       []BandModePair
+	CurrentBandModePair *BandModePair
+	Locale              *Locale
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -204,10 +205,14 @@ func NewStation(config *Config, w *World) *Station {
 		})
 	}
 
-	return &Station{
+	station := Station{
 		Callsing:      callsign,
 		Antenna:       antenna,
 		BandModePairs: bandModePairs,
 		Locale:        w.RandomLocale(),
 	}
+
+	station.CurrentBandModePair = &station.BandModePairs[rand.Intn(len(station.BandModePairs))]
+
+	return &station
 }
