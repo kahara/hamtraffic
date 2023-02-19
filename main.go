@@ -13,10 +13,10 @@ func Init() {
 	world = NewWorld()
 
 	for i := 0; i < config.StationCount; i++ {
-		stations = append(stations, NewStation(world))
+		stations = append(stations, NewStation(config, world))
 	}
 
 	for _, station := range stations {
-		log.Info().Str("callsign", station.Callsing).Any("locale", station.Locale).Msg("")
+		log.Info().Any("station", station).Msg("")
 	}
 }

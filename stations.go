@@ -3,37 +3,162 @@ package hamtraffic
 import (
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"math/rand"
+	"time"
 )
 
 const (
-	Prefix = "X0"
+	Prefix       = "X0"
+	WeightWiggle = 0.1
 )
 
-var nextSuffix = -1
+var (
+	nextSuffix = -1
+)
 
-type Band struct {
+type BandModePair struct {
 	Name            string
+	Weight          float64
+	Band            string
+	Mode            string
 	CenterFrequency float64
-	Bandwidth       float64
-	Bias            float64
+	BandWidth       float64
+	ChannelSpacing  float64
+	TimeSpacing     time.Duration
 }
 
-func NewBands() []*Band {
-	var bands []*Band
+func NewBandModePairs(bandWeights string, modeWeights string) []BandModePair {
 
-	return bands
+	var (
+		pairs []BandModePair
+		bands = KeyValueStringSplit(bandWeights)
+		modes = KeyValueStringSplit(modeWeights)
+	)
+
+	// Have product of bands x modes
+Loop:
+	for _, b := range bands {
+		for _, m := range modes {
+			var pair BandModePair
+
+			pair.Name = fmt.Sprintf("%s@%s", m.Key, b.Key)
+			pair.Weight = b.Value * m.Value
+			pair.Band = b.Key
+			pair.Mode = m.Key
+
+			// BANDS=160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.40,2m:0.25
+			// MODES=FT8:1.0,FT4:0.25,CW:0.15
+
+			switch b.Key {
+			case "160m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 1841500
+				case "FT4":
+					continue Loop // No FT4 on 160m
+				case "CW":
+					pair.CenterFrequency = 1852000
+					pair.BandWidth = 28000
+				}
+			case "80m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 3574500
+				case "FT4":
+					pair.CenterFrequency = 3576500
+				case "CW":
+					pair.CenterFrequency = 3605000
+					pair.BandWidth = 35000
+				}
+
+			case "40m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 7075500
+				case "FT4":
+					pair.CenterFrequency = 7049000
+				case "CW":
+					pair.CenterFrequency = 7020000
+					pair.BandWidth = 40000
+				}
+
+			case "20m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 14075500
+				case "FT4":
+					pair.CenterFrequency = 14081500
+				case "CW":
+					pair.CenterFrequency = 14035000
+					pair.BandWidth = 70000
+				}
+
+			case "10m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 28075500
+				case "FT4":
+					pair.CenterFrequency = 28181500
+				case "CW":
+					pair.CenterFrequency = 28035000
+					pair.BandWidth = 70000
+				}
+
+			case "6m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 50314500
+				case "FT4":
+					pair.CenterFrequency = 50319500
+				case "CW":
+					pair.CenterFrequency = 50200000
+					pair.BandWidth = 200000
+				}
+
+			case "2m":
+				switch m.Key {
+				case "FT8":
+					pair.CenterFrequency = 144175500
+				case "FT4":
+					pair.CenterFrequency = 144171500
+				case "CW":
+					pair.CenterFrequency = 144212500
+					pair.BandWidth = 375000
+				}
+			}
+
+			switch m.Key {
+			case "FT8":
+				pair.BandWidth = 3000
+				pair.ChannelSpacing = 50
+				pair.TimeSpacing = time.Duration(15 * time.Second)
+			case "FT4":
+				pair.BandWidth = 3000
+				pair.ChannelSpacing = 83.3
+				pair.TimeSpacing = time.Duration(7500 * time.Millisecond)
+			case "CW":
+				pair.ChannelSpacing = 100
+				pair.TimeSpacing = time.Duration(30 * time.Second)
+			}
+
+			pairs = append(pairs, pair)
+		}
+	}
+
+	return pairs
 }
 
 type Station struct {
-	Callsing string
-	Bands    []*Band
-	Locale   *Locale
+	Callsing      string
+	Antenna       string
+	BandModePairs []BandModePair
+	Locale        *Locale
 }
 
-func NewStation(w *World) *Station {
+func NewStation(config *Config, w *World) *Station {
 	nextSuffix += 1
 	if nextSuffix > MaxStationCount-1 {
-		log.Panic().Int("suffix", nextSuffix).Msg("too many suffixes")
+		log.Panic().Int("suffix", nextSuffix).Msg("too many suffixes, passing out")
 	}
 
 	suffix := fmt.Sprintf("%04X", nextSuffix)
@@ -62,9 +187,31 @@ func NewStation(w *World) *Station {
 		}(c)
 	}
 
+	antenna := [4]string{"Dipole", "Vertical", "Random wire", "Bedsprings"}[rand.Intn(4)]
+
+	var bandModePairs []BandModePair
+	for _, pair := range config.BandModePairs {
+		wiggle := rand.Float64() * WeightWiggle
+		bandModePairs = append(bandModePairs, BandModePair{
+			Name:            pair.Name,
+			Weight:          pair.Weight + (-wiggle + (wiggle * 2.0)),
+			Band:            pair.Band,
+			Mode:            pair.Mode,
+			CenterFrequency: pair.CenterFrequency,
+			BandWidth:       pair.BandWidth,
+			ChannelSpacing:  pair.ChannelSpacing,
+			TimeSpacing:     pair.TimeSpacing,
+		})
+	}
+
+	for _, x := range bandModePairs {
+		log.Info().Any("bandmodepair", x).Msg("")
+	}
+
 	return &Station{
-		Callsing: callsign,
-		Bands:    NewBands(),
-		Locale:   w.RandomLocale(),
+		Callsing:      callsign,
+		Antenna:       antenna,
+		BandModePairs: bandModePairs,
+		Locale:        w.RandomLocale(),
 	}
 }
