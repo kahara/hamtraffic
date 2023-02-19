@@ -217,6 +217,20 @@ func NewStation(config *Config, w *World) *Station {
 	return &station
 }
 
+func (s *Station) Run(done <-chan bool, ack chan<- bool) {
+Loop:
+	for {
+		select {
+		case <-done:
+			break Loop
+		default:
+			time.Sleep(time.Second)
+		}
+	}
+	log.Debug().Str("callsign", s.Callsign).Msg("Station shutting down")
+	ack <- true
+}
+
 func (s *Station) Tick() {
 	if rand.Float64() > config.Stickiness {
 		s.PickBandModePair()
