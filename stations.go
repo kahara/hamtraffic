@@ -212,14 +212,31 @@ func NewStation(config *Config, w *World) *Station {
 		Locale:        w.RandomLocale(),
 	}
 
-	station.CurrentBandModePair = &station.BandModePairs[rand.Intn(len(station.BandModePairs))]
+	station.PickBandModePair()
 
 	return &station
 }
 
 func (s *Station) Tick() {
 	if rand.Float64() > config.Stickiness {
-		s.CurrentBandModePair = &s.BandModePairs[rand.Intn(len(s.BandModePairs))]
-		log.Debug().Str("callsign", s.Callsign).Any("bandmodepair", s.CurrentBandModePair).Msg("Station changed band and mode")
+		s.PickBandModePair()
+		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode")
 	}
+}
+
+func (s *Station) PickBandModePair() {
+	var (
+		highscore float64 = 0
+		selected  BandModePair
+	)
+
+	for _, pair := range s.BandModePairs {
+		score := rand.Float64() * pair.Weight
+		if score > highscore {
+			highscore = score
+			selected = pair
+		}
+	}
+
+	s.CurrentBandModePair = &selected
 }
