@@ -24,7 +24,7 @@ type BandModePair struct {
 	CenterFrequency float64
 	BandWidth       float64
 	ChannelSpacing  float64
-	TimeSpacing     time.Duration
+	TransmitPeriods []time.Duration
 }
 
 func NewBandModePairs(bandWeights string, modeWeights string) []BandModePair {
@@ -45,9 +45,6 @@ Loop:
 			pair.Weight = b.Value * m.Value
 			pair.Band = b.Key
 			pair.Mode = m.Key
-
-			// BANDS=160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.40,2m:0.25
-			// MODES=FT8:1.0,FT4:0.25,CW:0.15
 
 			switch b.Key {
 			case "160m":
@@ -131,14 +128,31 @@ Loop:
 			case "FT8":
 				pair.BandWidth = 3000
 				pair.ChannelSpacing = 50
-				pair.TimeSpacing = time.Duration(15 * time.Second)
+				pair.TransmitPeriods = []time.Duration{
+					time.Duration(0 * time.Second),
+					time.Duration(15 * time.Second),
+					time.Duration(30 * time.Second),
+					time.Duration(45 * time.Second),
+				}
 			case "FT4":
 				pair.BandWidth = 3000
 				pair.ChannelSpacing = 83.3
-				pair.TimeSpacing = time.Duration(7500 * time.Millisecond)
+				pair.TransmitPeriods = []time.Duration{
+					time.Duration(0 * time.Millisecond),
+					time.Duration(7500 * time.Millisecond),
+					time.Duration(15000 * time.Millisecond),
+					time.Duration(22500 * time.Millisecond),
+					time.Duration(30000 * time.Millisecond),
+					time.Duration(37500 * time.Millisecond),
+					time.Duration(45000 * time.Millisecond),
+					time.Duration(52500 * time.Millisecond),
+				}
 			case "CW":
 				pair.ChannelSpacing = 100
-				pair.TimeSpacing = time.Duration(30 * time.Second)
+				pair.TransmitPeriods = []time.Duration{
+					time.Duration(0 * time.Second),
+					time.Duration(30 * time.Second),
+				}
 			}
 
 			pairs = append(pairs, pair)
@@ -153,6 +167,7 @@ type Station struct {
 	Antenna             string
 	BandModePairs       []BandModePair
 	CurrentBandModePair *BandModePair
+	TransmitEven        bool
 	Locale              *Locale
 }
 
@@ -201,7 +216,7 @@ func NewStation(config *Config, w *World) *Station {
 			CenterFrequency: pair.CenterFrequency,
 			BandWidth:       pair.BandWidth,
 			ChannelSpacing:  pair.ChannelSpacing,
-			TimeSpacing:     pair.TimeSpacing,
+			TransmitPeriods: pair.TransmitPeriods,
 		})
 	}
 
@@ -213,6 +228,12 @@ func NewStation(config *Config, w *World) *Station {
 	}
 
 	station.PickBandModePair()
+
+	if rand.Float64() < 0.5 {
+		station.TransmitEven = true
+	} else {
+		station.TransmitEven = false
+	}
 
 	return &station
 }
