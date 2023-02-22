@@ -288,6 +288,8 @@ Loop:
 
 		for _, period := range s.TransmitPeriods {
 			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
+
+				metrics["transmissions"].WithLabelValues(s.CurrentBandModePair.Band, s.CurrentBandModePair.Mode).Inc()
 				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
 			}
 		}

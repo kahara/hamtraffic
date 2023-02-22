@@ -16,6 +16,8 @@ func Init() {
 		start, deadline time.Time
 	)
 
+	go Metrics()
+
 	config = NewConfig()
 	world = NewWorld()
 
