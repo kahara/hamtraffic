@@ -2,6 +2,9 @@ package hamtraffic
 
 import (
 	"github.com/rs/zerolog/log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -23,6 +26,9 @@ func Run(start, deadline *time.Time, stations []*Station) {
 		acks = append(acks, ack)
 	}
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	// Aim at "start", which is the beginning of minute
 	time.Sleep(time.Until(*start))
 	ticker := time.NewTicker(time.Second)
@@ -36,8 +42,12 @@ Loop:
 		log.Info().Msg("Running")
 
 		// Run the world
+		// ...
 
 		select {
+		case sig := <-sigs:
+			log.Info().Str("signal", sig.String()).Msg("Signal caught, preparing to exit")
+			break Loop
 		case <-ticker.C:
 		}
 	}
