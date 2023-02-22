@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	Prefix       = "X0"
-	WeightWiggle = 0.1
+	Prefix                 = "X0"
+	WeightWiggle           = 0.1
+	SmallestCommonDuration = time.Duration(500 * time.Millisecond)
 )
 
 var (
@@ -28,7 +29,6 @@ type BandModePair struct {
 }
 
 func NewBandModePairs(bandWeights string, modeWeights string) []BandModePair {
-
 	var (
 		pairs []BandModePair
 		bands = KeyValueStringSplit(bandWeights)
@@ -168,6 +168,7 @@ type Station struct {
 	BandModePairs       []BandModePair
 	CurrentBandModePair *BandModePair
 	TransmitEven        bool
+	TransmitPeriods     []time.Duration
 	Locale              *Locale
 }
 
@@ -227,36 +228,15 @@ func NewStation(config *Config, w *World) *Station {
 		Locale:        w.RandomLocale(),
 	}
 
-	station.PickBandModePair()
-
 	if rand.Float64() < 0.5 {
 		station.TransmitEven = true
 	} else {
 		station.TransmitEven = false
 	}
 
+	station.PickBandModePair()
+
 	return &station
-}
-
-func (s *Station) Run(done <-chan bool, ack chan<- bool) {
-Loop:
-	for {
-		select {
-		case <-done:
-			break Loop
-		default:
-			time.Sleep(time.Second)
-		}
-	}
-	log.Debug().Str("callsign", s.Callsign).Msg("Station shutting down")
-	ack <- true
-}
-
-func (s *Station) Tick() {
-	if rand.Float64() > config.Stickiness {
-		s.PickBandModePair()
-		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode")
-	}
 }
 
 func (s *Station) PickBandModePair() {
@@ -265,6 +245,7 @@ func (s *Station) PickBandModePair() {
 		selected  BandModePair
 	)
 
+	// Pick a (weightedly) random band-mode-pair
 	for _, pair := range s.BandModePairs {
 		score := rand.Float64() * pair.Weight
 		if score > highscore {
@@ -272,6 +253,46 @@ func (s *Station) PickBandModePair() {
 			selected = pair
 		}
 	}
-
 	s.CurrentBandModePair = &selected
+
+	// Resolve the even, odd periods
+	s.TransmitPeriods = []time.Duration{}
+	for index, period := range s.CurrentBandModePair.TransmitPeriods {
+		if ((index%2) == 0 && s.TransmitEven) || ((index%2) == 1 && !s.TransmitEven) {
+			s.TransmitPeriods = append(s.TransmitPeriods, period)
+		}
+	}
+}
+
+func (s *Station) Run(start *time.Time, done <-chan bool, ack chan<- bool) {
+	var t time.Time
+
+	time.Sleep(time.Until(*start))
+	ticker := time.NewTicker(SmallestCommonDuration)
+
+Loop:
+	for {
+		select {
+		case <-done:
+			break Loop
+		default:
+			t = <-ticker.C
+		}
+
+		// Maybe decide to change band and mode
+		if rand.Float64() > config.Stickiness {
+			s.PickBandModePair()
+			log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
+			time.Until(t.Truncate(time.Minute).Add(time.Duration(time.Minute)))
+		}
+
+		for _, period := range s.TransmitPeriods {
+			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
+				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
+			}
+		}
+	}
+
+	log.Debug().Str("callsign", s.Callsign).Msg("Station shutting down")
+	ack <- true
 }

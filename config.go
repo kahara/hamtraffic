@@ -14,7 +14,7 @@ const (
 	MaxStationCount     = 65536
 	DefaultBands        = "160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.25,2m:0.15"
 	DefaultModes        = "FT8:1.0,FT4:0.25,CW:0.15"
-	DefaultStickiness   = 0.995
+	DefaultStickiness   = 0.9999
 )
 
 type Config struct {

@@ -18,12 +18,12 @@ func Run(start, deadline *time.Time, stations []*Station) {
 	for _, station := range stations {
 		done := make(chan bool, 1)
 		ack := make(chan bool, 1)
-		go station.Run(done, ack)
+		go station.Run(start, done, ack)
 		dones = append(dones, done)
 		acks = append(acks, ack)
 	}
 
-	// Aim near "start"
+	// Aim at "start", which is the beginning of minute
 	time.Sleep(time.Until(*start))
 	ticker := time.NewTicker(time.Second)
 Loop:
