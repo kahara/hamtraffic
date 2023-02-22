@@ -29,6 +29,8 @@ func Run(start, deadline *time.Time, stations []*Station) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
+	// FIXME need to SIGKILL during the wait before main loop starts
+
 	// Aim at "start", which is the beginning of minute
 	time.Sleep(time.Until(*start))
 	ticker := time.NewTicker(time.Second)
