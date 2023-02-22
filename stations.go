@@ -162,11 +162,22 @@ Loop:
 	return pairs
 }
 
+type Transmission struct {
+	Time      time.Time
+	Frequency float64
+	Band      string
+	Mode      string
+	Power     float64
+	Callsign  string
+	Locator   string
+}
+
 type Station struct {
 	Callsign            string
 	Antenna             string
 	BandModePairs       []BandModePair
 	CurrentBandModePair *BandModePair
+	Frequency           float64
 	TransmitEven        bool
 	TransmitPeriods     []time.Duration
 	Locale              *Locale
@@ -255,6 +266,11 @@ func (s *Station) PickBandModePair() {
 	}
 	s.CurrentBandModePair = &selected
 
+	// Set the frequency
+	channels := int(s.CurrentBandModePair.BandWidth / s.CurrentBandModePair.ChannelSpacing)
+	floor := s.CurrentBandModePair.CenterFrequency - (s.CurrentBandModePair.BandWidth / 2)
+	s.Frequency = floor + (s.CurrentBandModePair.ChannelSpacing * float64(rand.Intn(channels)))
+
 	// Resolve the even, odd periods
 	s.TransmitPeriods = []time.Duration{}
 	for index, period := range s.CurrentBandModePair.TransmitPeriods {
@@ -264,7 +280,7 @@ func (s *Station) PickBandModePair() {
 	}
 }
 
-func (s *Station) Run(start *time.Time, done <-chan bool, ack chan<- bool) {
+func (s *Station) Run(start *time.Time, xmit chan<- Transmission, done <-chan bool, ack chan<- bool) {
 	var t time.Time
 
 	time.Sleep(time.Until(*start))
@@ -288,7 +304,15 @@ Loop:
 
 		for _, period := range s.TransmitPeriods {
 			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
-
+				xmit <- Transmission{
+					Time:      time.Now().UTC(),
+					Frequency: s.Frequency,
+					Band:      s.CurrentBandModePair.Band,
+					Mode:      s.CurrentBandModePair.Mode,
+					Power:     0,
+					Callsign:  s.Callsign,
+					Locator:   s.Locale.Locators[1],
+				}
 				metrics["transmissions"].WithLabelValues(s.CurrentBandModePair.Band, s.CurrentBandModePair.Mode).Inc()
 				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
 			}

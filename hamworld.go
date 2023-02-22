@@ -9,7 +9,10 @@ import (
 )
 
 func Run(start, deadline *time.Time, stations []*Station) {
-	var dones, acks []chan bool
+	var (
+		xmits       []chan Transmission
+		dones, acks []chan bool
+	)
 
 	if deadline != nil {
 		log.Info().Time("start", *start).Time("deadline", *deadline).Str("delay", time.Until(*start).String()).Msg("Starting run")
@@ -19,9 +22,11 @@ func Run(start, deadline *time.Time, stations []*Station) {
 
 	// Start up the stations
 	for _, station := range stations {
+		xmit := make(chan Transmission, 1)
 		done := make(chan bool, 1)
 		ack := make(chan bool, 1)
-		go station.Run(start, done, ack)
+		go station.Run(start, xmit, done, ack)
+		xmits = append(xmits, xmit)
 		dones = append(dones, done)
 		acks = append(acks, ack)
 	}
@@ -44,7 +49,13 @@ Loop:
 		log.Info().Msg("Running")
 
 		// Run the world
-		// ...
+		for _, xmit := range xmits {
+			select {
+			case transmission := <-xmit:
+				log.Debug().Any("transmission", transmission).Msg("")
+			default:
+			}
+		}
 
 		select {
 		case sig := <-sigs:
