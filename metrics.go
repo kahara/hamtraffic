@@ -21,6 +21,7 @@ func Metrics() {
 	}, []string{
 		"band",
 		"mode",
+		"callsign",
 	})
 	metrics["transmissions"] = metric
 

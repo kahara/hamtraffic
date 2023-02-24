@@ -19,6 +19,19 @@ the system currently understands. `MODES` follows the same pattern.
 
 `STICKINESS` represents the likelihood of a station to stick to the band and mode it's currently working.
 
+## Instrumentation
+
+The service exposes the following metric on port `9108/tcp`:
+
+```
+hamtraffic_station_transmissions_total{band="band", mode="mode", callsign=""}
+```
+
+As there can be many callsigns, cardinality can get high. I wouldn't be that concerned though, as this is a testing
+tool that isn't supposed to be running around the clock. There's a Docker composition in this repo's root, which runs
+the hamtraffic service, plus Prometheus and Grafana. Grafana can be accessed at `localhost:3000`, and includes a basic
+overview dashboard; the dashboard is under "General".
+
 ## Fake hams on air
 
 To make it less likely to facepalm and get things mixed up with real hams, all callsigns are generated with prefix `X0`,

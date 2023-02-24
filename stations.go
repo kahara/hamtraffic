@@ -18,14 +18,15 @@ var (
 )
 
 type BandModePair struct {
-	Name            string
-	Weight          float64
-	Band            string
-	Mode            string
-	CenterFrequency float64
-	BandWidth       float64
-	ChannelSpacing  float64
-	TransmitPeriods []time.Duration
+	Name             string
+	Weight           float64
+	Band             string
+	Mode             string
+	CenterFrequency  float64
+	BandWidth        float64
+	ChannelSpacing   float64
+	TransmitDuration time.Duration
+	TransmitPeriods  []time.Duration
 }
 
 func NewBandModePairs(bandWeights string, modeWeights string) []BandModePair {
@@ -128,6 +129,7 @@ Loop:
 			case "FT8":
 				pair.BandWidth = 3000
 				pair.ChannelSpacing = 50
+				pair.TransmitDuration = time.Duration(15 * time.Second)
 				pair.TransmitPeriods = []time.Duration{
 					time.Duration(0 * time.Second),
 					time.Duration(15 * time.Second),
@@ -137,6 +139,7 @@ Loop:
 			case "FT4":
 				pair.BandWidth = 3000
 				pair.ChannelSpacing = 83.3
+				pair.TransmitDuration = time.Duration(7500 * time.Millisecond)
 				pair.TransmitPeriods = []time.Duration{
 					time.Duration(0 * time.Millisecond),
 					time.Duration(7500 * time.Millisecond),
@@ -149,6 +152,7 @@ Loop:
 				}
 			case "CW":
 				pair.ChannelSpacing = 100
+				pair.TransmitDuration = time.Duration(30 * time.Second)
 				pair.TransmitPeriods = []time.Duration{
 					time.Duration(0 * time.Second),
 					time.Duration(30 * time.Second),
@@ -164,6 +168,7 @@ Loop:
 
 type Transmission struct {
 	Time      time.Time
+	Duration  time.Duration
 	Frequency float64
 	Band      string
 	Mode      string
@@ -299,13 +304,14 @@ Loop:
 		if rand.Float64() > config.Stickiness {
 			s.PickBandModePair()
 			log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
-			time.Until(t.Truncate(time.Minute).Add(time.Duration(time.Minute)))
+			time.Sleep(time.Until(t.Truncate(time.Minute).Add(time.Duration(time.Minute))))
 		}
 
 		for _, period := range s.TransmitPeriods {
 			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
 				xmit <- Transmission{
 					Time:      time.Now().UTC(),
+					Duration:  s.CurrentBandModePair.TransmitDuration,
 					Frequency: s.Frequency,
 					Band:      s.CurrentBandModePair.Band,
 					Mode:      s.CurrentBandModePair.Mode,
@@ -313,7 +319,7 @@ Loop:
 					Callsign:  s.Callsign,
 					Locator:   s.Locale.Locators[1],
 				}
-				metrics["transmissions"].WithLabelValues(s.CurrentBandModePair.Band, s.CurrentBandModePair.Mode).Inc()
+				metrics["transmissions"].WithLabelValues(s.CurrentBandModePair.Band, s.CurrentBandModePair.Mode, s.Callsign).Inc()
 				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
 			}
 		}
