@@ -14,6 +14,12 @@ TRANSMISSION_PROBABILITY=0.65
 STICKINESS=0.9999
 ```
 
+If `FREERUN` is `false`, and `RUNTIME` (e.g., "900s") is supplied, the program will run for the specified time.
+Otherwise the run will continue until terminated.
+
+`STATION_COUNT` is the total number of stations. Memory consumption increases quadratically with more stations, as it's,
+in the name of runtime performance, necessary to precompute the distances from each station to every other station.
+
 `BANDS` gives a relative weight for each, so that with the default setting above, it's four times more likely that a
 station transmits on the 20-meter band, than on the 160-meter band, for example. The default also lists the bands that
 the system currently understands. `MODES` follows the same pattern.
