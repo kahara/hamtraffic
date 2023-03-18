@@ -309,6 +309,11 @@ Loop:
 
 		for _, period := range s.TransmitPeriods {
 			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
+				// Decide to transmit or not
+				if rand.Float64() < config.TransmissionProbability {
+					log.Debug().Str("callsign", s.Callsign).Msg("Skipping transmission")
+					continue
+				}
 				xmit <- Transmission{
 					Time:      time.Now().UTC(),
 					Duration:  s.CurrentBandModePair.TransmitDuration,

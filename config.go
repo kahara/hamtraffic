@@ -8,24 +8,26 @@ import (
 )
 
 const (
-	DefaultFreerun      = true
-	DefaultRuntime      = "900s"
-	DefaultStationCount = 10000
-	MaxStationCount     = 65536
-	DefaultBands        = "160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.25,2m:0.15"
-	DefaultModes        = "FT8:1.0,FT4:0.25,CW:0.15"
-	DefaultStickiness   = 0.9999
+	DefaultFreerun                 = true
+	DefaultRuntime                 = "900s"
+	DefaultStationCount            = 10000
+	MaxStationCount                = 65536
+	DefaultBands                   = "160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.25,2m:0.15"
+	DefaultModes                   = "FT8:1.0,FT4:0.25,CW:0.15"
+	DefaultTransmissionProbability = 0.65
+	DefaultStickiness              = 0.9999
 
 	PrometheusAddrPort  = ":9108"
 	PrometheusNamespace = "hamtraffic"
 )
 
 type Config struct {
-	Freerun       bool
-	Runtime       *time.Duration
-	StationCount  int
-	BandModePairs []BandModePair
-	Stickiness    float64
+	Freerun                 bool
+	Runtime                 *time.Duration
+	StationCount            int
+	BandModePairs           []BandModePair
+	TransmissionProbability float64
+	Stickiness              float64
 }
 
 func NewConfig() *Config {
@@ -84,6 +86,18 @@ func NewConfig() *Config {
 		modes = DefaultModes
 	}
 	config.BandModePairs = NewBandModePairs(bands, modes)
+
+	// Transmission probability
+	tp := os.Getenv("TRANSMISSION_PROBABILITY")
+	if tp == "" {
+		config.TransmissionProbability = DefaultTransmissionProbability
+	} else {
+		p, err := strconv.ParseFloat(tp, 64)
+		if err != nil {
+			log.Fatal().Err(err).Msg("")
+		}
+		config.TransmissionProbability = p
+	}
 
 	// Stickiness
 	stick := os.Getenv("STICKINESS")

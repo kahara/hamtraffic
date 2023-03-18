@@ -10,12 +10,15 @@ RUNTIME= # n/a; this is parsed into a time.Duration
 STATION_COUNT=10000
 BANDS=160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.40,2m:0.25
 MODES=FT8:1.0,FT4:0.25,CW:0.15
+TRANSMISSION_PROBABILITY=0.65
 STICKINESS=0.9999
 ```
 
 `BANDS` gives a relative weight for each, so that with the default setting above, it's four times more likely that a
 station transmits on the 20-meter band, than on the 160-meter band, for example. The default also lists the bands that
 the system currently understands. `MODES` follows the same pattern.
+
+`TRANSMISSION_PROBABILITY` represents the likelihood of a station transmitting during a given slot.
 
 `STICKINESS` represents the likelihood of a station to stick to the band and mode it's currently working.
 
