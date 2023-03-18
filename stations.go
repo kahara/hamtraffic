@@ -2,6 +2,7 @@ package hamtraffic
 
 import (
 	"fmt"
+	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 	"math/rand"
 	"time"
@@ -14,7 +15,8 @@ const (
 )
 
 var (
-	nextSuffix = -1
+	nextSuffix    = -1
+	NeighbourBins = []float64{40960000, 20480000, 10240000, 5210000, 2560000, 1280000, 640000, 320000, 160000, 80000, 40000, 20000, 10000, 0}
 )
 
 type BandModePair struct {
@@ -186,6 +188,7 @@ type Station struct {
 	TransmitEven        bool
 	TransmitPeriods     []time.Duration
 	Locale              *Locale
+	Neighbours          map[float64][]*Station
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -255,6 +258,43 @@ func NewStation(config *Config, w *World) *Station {
 	return &station
 }
 
+func (s *Station) ComputeNeighbourhood(neighbours []*Station) {
+	var g = s.Locale.Geometry
+
+	s.Neighbours = make(map[float64][]*Station)
+	for _, bin := range NeighbourBins {
+		s.Neighbours[bin] = []*Station{}
+	}
+
+	for _, neighbour := range neighbours {
+		// Skip self
+		if neighbour == s {
+			continue
+		}
+
+		// Put each remote station into its distance bin, wasting space while conserving time during lookups
+		distance := geo.DistanceHaversine(g, neighbour.Locale.Geometry)
+		for index, bin := range NeighbourBins {
+			// Skip the last (zero) bin
+			if bin == 0 {
+				break
+			}
+			if distance < bin && distance > NeighbourBins[index+1] {
+				s.Neighbours[bin] = append(s.Neighbours[bin], neighbour)
+				break
+			}
+		}
+	}
+
+	log.Debug().Str("callsign", s.Callsign).Any("bins", func() map[string]int {
+		x := make(map[string]int)
+		for bin, n := range s.Neighbours {
+			x[fmt.Sprintf("%.0fkm", bin/1000)] = len(n)
+		}
+		return x
+	}()).Msg("Computed distances to neighbours")
+}
+
 func (s *Station) PickBandModePair() {
 	var (
 		highscore float64 = 0
@@ -305,6 +345,7 @@ Loop:
 			s.PickBandModePair()
 			log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
 			time.Sleep(time.Until(t.Truncate(time.Minute).Add(time.Duration(time.Minute))))
+			// Foo!
 		}
 
 		for _, period := range s.TransmitPeriods {

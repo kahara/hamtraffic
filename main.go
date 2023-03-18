@@ -25,8 +25,9 @@ func Init() {
 		stations = append(stations, NewStation(config, world))
 	}
 
+	log.Debug().Msg("Computing neighbourhoods")
 	for _, station := range stations {
-		log.Debug().Any("station", station).Msg("")
+		station.ComputeNeighbourhood(stations)
 	}
 
 	// Start running at the start of next minute
