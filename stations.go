@@ -345,15 +345,14 @@ Loop:
 			s.PickBandModePair()
 			log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
 			time.Sleep(time.Until(t.Truncate(time.Minute).Add(time.Duration(time.Minute))))
-			// Foo!
 		}
 
 		for _, period := range s.TransmitPeriods {
 			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
 				// Decide to transmit or not
-				if rand.Float64() < config.TransmissionProbability {
+				if rand.Float64() > config.TransmissionProbability {
 					log.Debug().Str("callsign", s.Callsign).Msg("Skipping transmission")
-					continue
+					break
 				}
 				xmit <- Transmission{
 					Station:   s,
