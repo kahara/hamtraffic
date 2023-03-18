@@ -12,7 +12,12 @@ func Run(start, deadline *time.Time, stations []*Station) {
 	var (
 		xmits       []chan Transmission
 		dones, acks []chan bool
+		backlog     = make(chan Transmission, 10000)
 	)
+
+	// FIXME this currently blocks until the main loop is entered
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	if deadline != nil {
 		log.Info().Time("start", *start).Time("deadline", *deadline).Str("delay", time.Until(*start).String()).Msg("Starting run")
@@ -31,14 +36,13 @@ func Run(start, deadline *time.Time, stations []*Station) {
 		acks = append(acks, ack)
 	}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	// FIXME need to SIGKILL during the wait before main loop starts
+	// Propagator resolves which station heard each transmission
+	go propagate(backlog)
 
 	// Aim at "start", which is the beginning of minute
 	time.Sleep(time.Until(*start))
 	ticker := time.NewTicker(time.Second)
+
 Loop:
 	for {
 		now := time.Now().UTC()
@@ -52,7 +56,7 @@ Loop:
 		for _, xmit := range xmits {
 			select {
 			case transmission := <-xmit:
-				log.Debug().Any("transmission", transmission).Msg("")
+				backlog <- transmission // For propagator's consumption
 			default:
 			}
 		}

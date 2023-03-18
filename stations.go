@@ -169,14 +169,13 @@ Loop:
 }
 
 type Transmission struct {
+	Station   *Station
 	Time      time.Time
 	Duration  time.Duration
 	Frequency float64
 	Band      string
 	Mode      string
 	Power     float64
-	Callsign  string
-	Locator   string
 }
 
 type Station struct {
@@ -189,6 +188,7 @@ type Station struct {
 	TransmitPeriods     []time.Duration
 	Locale              *Locale
 	Neighbours          map[float64][]*Station
+	Receiver            []Transmission
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -356,14 +356,13 @@ Loop:
 					continue
 				}
 				xmit <- Transmission{
+					Station:   s,
 					Time:      time.Now().UTC(),
 					Duration:  s.CurrentBandModePair.TransmitDuration,
 					Frequency: s.Frequency,
 					Band:      s.CurrentBandModePair.Band,
 					Mode:      s.CurrentBandModePair.Mode,
 					Power:     0,
-					Callsign:  s.Callsign,
-					Locator:   s.Locale.Locators[1],
 				}
 				metrics["transmissions"].WithLabelValues(s.CurrentBandModePair.Band, s.CurrentBandModePair.Mode, s.Callsign).Inc()
 				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
