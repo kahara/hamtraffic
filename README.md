@@ -8,7 +8,7 @@ All configuration takes place over environment variables. Here are the defaults:
 FREERUN=true
 RUNTIME= # n/a; this is parsed into a time.Duration
 STATION_COUNT=10000
-BANDS=160m:0.25,80m:0.40,40m:0.65,20m:1.0,10m:0.65,6m:0.40,2m:0.25
+BANDS=160m:0.75,80m:0.85,40m:0.95,20m:1.0,10m:0.9,6m:0.8,2m:0.7
 MODES=FT8:1.0,FT4:0.5,CW:0.5
 TRANSMISSION_PROBABILITY=0.65
 STICKINESS=0.9999
@@ -22,7 +22,8 @@ in the name of runtime performance, necessary to precompute the distances from e
 
 `BANDS` gives a relative weight for each, so that with the default setting above, it's four times more likely that a
 station transmits on the 20-meter band, than on the 160-meter band, for example. The default also lists the bands that
-the system currently understands. `MODES` follows the same pattern.
+the system currently understands. `MODES` follows the same pattern. Note however that the weights for bands and modes
+get multiplied together.
 
 `TRANSMISSION_PROBABILITY` represents the likelihood of a station transmitting during a given slot.
 
