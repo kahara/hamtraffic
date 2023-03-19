@@ -188,7 +188,7 @@ type Station struct {
 	TransmitPeriods     []time.Duration
 	Locale              *Locale
 	Neighbours          map[float64][]*Station
-	Receiver            []Transmission
+	Receiver            chan Transmission
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -245,6 +245,7 @@ func NewStation(config *Config, w *World) *Station {
 		Antenna:       antenna,
 		BandModePairs: bandModePairs,
 		Locale:        w.RandomLocale(),
+		Receiver:      make(chan Transmission, 100),
 	}
 
 	if rand.Float64() < 0.5 {
@@ -325,6 +326,10 @@ func (s *Station) PickBandModePair() {
 	}
 }
 
+func (s *Station) Receive(transmission Transmission) {
+	log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Transmission received")
+}
+
 func (s *Station) Run(start *time.Time, xmit chan<- Transmission, done <-chan bool, ack chan<- bool) {
 	var t time.Time
 
@@ -336,6 +341,8 @@ Loop:
 		select {
 		case <-done:
 			break Loop
+		case transmission := <-s.Receiver:
+			s.Receive(transmission)
 		default:
 			t = <-ticker.C
 		}
