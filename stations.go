@@ -370,7 +370,6 @@ Loop:
 					Mode:      s.CurrentBandModePair.Mode,
 					Power:     0,
 				}
-				metrics["transmissions"].WithLabelValues(s.CurrentBandModePair.Band, s.CurrentBandModePair.Mode, s.Callsign).Inc()
 				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
 			}
 		}

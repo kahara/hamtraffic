@@ -56,6 +56,7 @@ Loop:
 		for _, xmit := range xmits {
 			select {
 			case transmission := <-xmit:
+				metrics["transmissions"].WithLabelValues(transmission.Band, transmission.Mode, transmission.Station.Callsign).Inc()
 				backlog <- transmission // For propagator's consumption
 			default:
 			}
