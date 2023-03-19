@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"math/rand"
+	"time"
 )
 
 // NOTE We're not attempting to model irl propagation of radio waves
@@ -29,6 +30,7 @@ func propagate(backlog <-chan Transmission) {
 		case transmission = <-backlog:
 			log.Debug().Str("callsign", transmission.Station.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Time("timestamp", transmission.Time).Msg("Propagating")
 		default:
+			time.Sleep(time.Duration(1 * time.Millisecond))
 			continue
 		}
 
