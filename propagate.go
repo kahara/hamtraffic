@@ -3,6 +3,7 @@ package hamtraffic
 import (
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"math"
 	"math/rand"
 	"time"
 )
@@ -14,10 +15,13 @@ const DistanceWiggle = 0.1
 func propagate(backlog <-chan Transmission) {
 	var (
 		bandmodepairToDistance = func() map[string]float64 {
-			var distances = make(map[string]float64)
+			var (
+				basePropagation = NeighbourBins[0]
+				distances       = make(map[string]float64)
+			)
 
 			for _, bandmodepair := range config.BandModePairs {
-				distances[fmt.Sprintf("%s@%s", bandmodepair.Band, bandmodepair.Mode)] = 1000000000 // FIXME
+				distances[fmt.Sprintf("%s@%s", bandmodepair.Band, bandmodepair.Mode)] = (basePropagation / 2) / math.Sqrt(bandmodepair.CenterFrequency)
 			}
 
 			return distances
