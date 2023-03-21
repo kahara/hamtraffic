@@ -10,18 +10,18 @@ import (
 
 // NOTE We're not attempting to model irl propagation of radio waves
 
-const DistanceWiggle = 0.1
+const DistanceWiggle = 0.5
 
 func propagate(backlog <-chan Transmission) {
 	var (
 		bandmodepairToDistance = func() map[string]float64 {
 			var (
-				basePropagation = NeighbourBins[0]
+				basePropagation = NeighbourBins[1]
 				distances       = make(map[string]float64)
 			)
 
 			for _, bandmodepair := range config.BandModePairs {
-				distances[fmt.Sprintf("%s@%s", bandmodepair.Band, bandmodepair.Mode)] = (basePropagation / 2) / math.Sqrt(bandmodepair.CenterFrequency)
+				distances[fmt.Sprintf("%s@%s", bandmodepair.Band, bandmodepair.Mode)] = (basePropagation / 2) / math.Sqrt(bandmodepair.CenterFrequency/1000000)
 			}
 
 			return distances
