@@ -327,7 +327,12 @@ func (s *Station) PickBandModePair() {
 }
 
 func (s *Station) Receive(transmission Transmission) {
-	log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Transmission received")
+	//log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Transmission received")
+
+	// TODO check if station was listening
+
+	// TODO check if concurrent increments are an actual problem
+	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 }
 
 func (s *Station) Run(start *time.Time, xmit chan<- Transmission, done <-chan bool, ack chan<- bool) {

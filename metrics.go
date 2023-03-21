@@ -13,7 +13,7 @@ var (
 )
 
 func Metrics() {
-	metric := promauto.NewCounterVec(prometheus.CounterOpts{
+	metrics["transmissions"] = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: PrometheusNamespace,
 		Subsystem: "station",
 		Name:      "transmissions_total",
@@ -23,7 +23,17 @@ func Metrics() {
 		"mode",
 		"callsign",
 	})
-	metrics["transmissions"] = metric
+
+	metrics["receptions"] = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: PrometheusNamespace,
+		Subsystem: "station",
+		Name:      "receptions_total",
+		Help:      "Total receptions",
+	}, []string{
+		"band",
+		"mode",
+		"callsign",
+	})
 
 	http.Handle("/metrics", promhttp.Handler())
 	if err := http.ListenAndServe(PrometheusAddrPort, nil); err != nil {
