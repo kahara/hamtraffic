@@ -19,6 +19,11 @@ func Init() {
 	go Metrics()
 
 	config = NewConfig()
+
+	// https://blog.twitch.tv/en/2019/04/10/go-memory-ballast-how-i-learnt-to-stop-worrying-and-love-the-heap/
+	ballast := make([]byte, config.StationCount*1048576)
+	log.Info().Int("size", len(ballast)).Msg("Ballast reserved")
+
 	world = NewWorld()
 
 	for i := 0; i < config.StationCount; i++ {
