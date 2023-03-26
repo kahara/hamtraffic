@@ -9,12 +9,6 @@ import (
 )
 
 func Run(start, deadline *time.Time, stations []*Station) {
-	var (
-		xmits       []chan Transmission
-		dones, acks []chan bool
-		backlog     = make(chan Transmission, 10000)
-	)
-
 	// FIXME this currently blocks until the main loop is entered
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -25,23 +19,9 @@ func Run(start, deadline *time.Time, stations []*Station) {
 		log.Info().Time("start", *start).Str("delay", time.Until(*start).String()).Msg("Starting run")
 	}
 
-	// Start up the stations
-	for _, station := range stations {
-		xmit := make(chan Transmission, 1)
-		done := make(chan bool, 1)
-		ack := make(chan bool, 1)
-		go station.Run(start, xmit, done, ack)
-		xmits = append(xmits, xmit)
-		dones = append(dones, done)
-		acks = append(acks, ack)
-	}
-
-	// Propagator resolves which station heard each transmission
-	go propagate(backlog)
-
 	// Aim at "start", which is the beginning of minute
 	time.Sleep(time.Until(*start))
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(SmallestCommonDuration)
 
 Loop:
 	for {
@@ -52,14 +32,18 @@ Loop:
 		}
 		log.Info().Msg("Running")
 
-		// Run the world
-		for _, xmit := range xmits {
-			select {
-			case transmission := <-xmit:
+		// Run each station
+		var transmissions []*Transmission
+		for _, station := range stations {
+			if transmission := station.Run(now); transmission != nil {
 				metrics["transmissions"].WithLabelValues(transmission.Band, transmission.Mode, transmission.Station.Callsign).Inc()
-				backlog <- transmission // For propagator's consumption
-			default:
+				transmissions = append(transmissions, transmission)
 			}
+		}
+
+		// Propagate each transmission
+		for _, transmission := range transmissions {
+			propagate(transmission)
 		}
 
 		select {
@@ -68,16 +52,6 @@ Loop:
 			break Loop
 		case <-ticker.C:
 		}
-	}
-
-	// Tell stations to shut down
-	for _, done := range dones {
-		done <- true
-	}
-
-	// Wait for station shutdown confirmations
-	for _, ack := range acks {
-		<-ack
 	}
 }
 

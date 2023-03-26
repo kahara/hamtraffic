@@ -8,9 +8,7 @@ import (
 	"net/http"
 )
 
-var (
-	metrics = make(map[string]*prometheus.CounterVec)
-)
+var metrics = make(map[string]*prometheus.CounterVec)
 
 func Metrics() {
 	metrics["transmissions"] = promauto.NewCounterVec(prometheus.CounterOpts{

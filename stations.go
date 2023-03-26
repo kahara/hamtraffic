@@ -11,7 +11,7 @@ import (
 const (
 	Prefix                 = "X0"
 	WeightWiggle           = 0.1
-	SmallestCommonDuration = time.Duration(500 * time.Millisecond)
+	SmallestCommonDuration = time.Duration(7500 * time.Millisecond)
 )
 
 var (
@@ -188,7 +188,7 @@ type Station struct {
 	TransmitPeriods     []time.Duration
 	Locale              *Locale
 	Neighbours          map[float64][]*Station
-	Receiver            chan Transmission
+	Receiver            chan *Transmission
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -245,7 +245,7 @@ func NewStation(config *Config, w *World) *Station {
 		Antenna:       antenna,
 		BandModePairs: bandModePairs,
 		Locale:        w.RandomLocale(),
-		Receiver:      make(chan Transmission, 100),
+		Receiver:      make(chan *Transmission, 1000),
 	}
 
 	if rand.Float64() < 0.5 {
@@ -326,60 +326,44 @@ func (s *Station) PickBandModePair() {
 	}
 }
 
-func (s *Station) Receive(transmission Transmission) {
-	//log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Transmission received")
+func (s *Station) Receive(transmission *Transmission) {
+	log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Receiving")
+
+	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 
 	// TODO check if station was listening
 
-	// TODO check if concurrent increments are an actual problem
-	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
+	// TODO send an update
 }
 
-func (s *Station) Run(start *time.Time, xmit chan<- Transmission, done <-chan bool, ack chan<- bool) {
-	var t time.Time
+func (s *Station) Run(t time.Time) *Transmission {
+	// Maybe decide to change band and mode
+	if rand.Float64() > config.Stickiness {
+		s.PickBandModePair()
+		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
+		return nil
+	}
 
-	time.Sleep(time.Until(*start))
-	ticker := time.NewTicker(SmallestCommonDuration)
+	for _, period := range s.TransmitPeriods {
+		if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
+			// Decide to transmit or not
+			if rand.Float64() > config.TransmissionProbability {
+				log.Debug().Str("callsign", s.Callsign).Msg("Skipping transmission")
+				return nil
+			}
 
-Loop:
-	for {
-		select {
-		case <-done:
-			break Loop
-		case transmission := <-s.Receiver:
-			s.Receive(transmission)
-		default:
-			t = <-ticker.C
-		}
-
-		// Maybe decide to change band and mode
-		if rand.Float64() > config.Stickiness {
-			s.PickBandModePair()
-			log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
-			time.Sleep(time.Until(t.Truncate(time.Minute).Add(time.Duration(time.Minute))))
-		}
-
-		for _, period := range s.TransmitPeriods {
-			if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
-				// Decide to transmit or not
-				if rand.Float64() > config.TransmissionProbability {
-					log.Debug().Str("callsign", s.Callsign).Msg("Skipping transmission")
-					break
-				}
-				xmit <- Transmission{
-					Station:   s,
-					Time:      time.Now().UTC(),
-					Duration:  s.CurrentBandModePair.TransmitDuration,
-					Frequency: s.Frequency,
-					Band:      s.CurrentBandModePair.Band,
-					Mode:      s.CurrentBandModePair.Mode,
-					Power:     0,
-				}
-				log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
+			log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
+			return &Transmission{
+				Station:   s,
+				Time:      time.Now().UTC(),
+				Duration:  s.CurrentBandModePair.TransmitDuration,
+				Frequency: s.Frequency,
+				Band:      s.CurrentBandModePair.Band,
+				Mode:      s.CurrentBandModePair.Mode,
+				Power:     0,
 			}
 		}
 	}
 
-	log.Debug().Str("callsign", s.Callsign).Msg("Station shutting down")
-	ack <- true
+	return nil
 }
