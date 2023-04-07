@@ -2,6 +2,7 @@ package hamtraffic
 
 import (
 	"fmt"
+	spot "github.com/kahara/go-pskreporter-spot"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 	"math/rand"
@@ -189,6 +190,7 @@ type Station struct {
 	Locale              *Locale
 	Neighbours          map[float64][]*Station
 	Receiver            chan *Transmission
+	Spotter             *spot.Spotter
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -240,12 +242,15 @@ func NewStation(config *Config, w *World) *Station {
 		})
 	}
 
+	locale := w.RandomLocale()
+
 	station := Station{
 		Callsign:      callsign,
 		Antenna:       antenna,
 		BandModePairs: bandModePairs,
-		Locale:        w.RandomLocale(),
+		Locale:        locale,
 		Receiver:      make(chan *Transmission, 1000),
+		Spotter:       spot.NewSpotter(config.ReporterAddress, callsign, locale.Locators[2], antenna, SpotterSoftware, "", spot.SpotKind_CallsignFrequencyModeSourceLocatorFlowstart),
 	}
 
 	if rand.Float64() < 0.5 {
@@ -327,13 +332,15 @@ func (s *Station) PickBandModePair() {
 }
 
 func (s *Station) Receive(transmission *Transmission) {
-	log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Receiving")
+	//log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Receiving")
 
 	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 
-	// TODO check if station was listening
+	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[2], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
 
-	// TODO send an update
+	// TODO check this if station was listening at this time, on this band and mode
+
+	// TODO send an update towards the reporter
 }
 
 func (s *Station) Run(t time.Time) *Transmission {

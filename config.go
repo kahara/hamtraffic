@@ -16,9 +16,12 @@ const (
 	DefaultModes                   = "FT8:1.0,FT4:0.5,CW:0.5"
 	DefaultTransmissionProbability = 0.65
 	DefaultStickiness              = 0.9999
+	DefaultReporterAddress         = "localhost:4739"
 
 	PrometheusAddrPort  = ":9108"
 	PrometheusNamespace = "hamtraffic"
+
+	SpotterSoftware = "hamtraffic v0"
 )
 
 type Config struct {
@@ -28,6 +31,7 @@ type Config struct {
 	BandModePairs           []BandModePair
 	TransmissionProbability float64
 	Stickiness              float64
+	ReporterAddress         string
 }
 
 func NewConfig() *Config {
@@ -109,6 +113,14 @@ func NewConfig() *Config {
 			log.Fatal().Err(err).Msg("")
 		}
 		config.Stickiness = s
+	}
+
+	// Reporter address
+	ra := os.Getenv("REPORTER_ADDRESS")
+	if ra == "" {
+		config.ReporterAddress = DefaultReporterAddress
+	} else {
+		config.ReporterAddress = ra
 	}
 
 	log.Info().Any("config", config).Msg("Configuration complete")

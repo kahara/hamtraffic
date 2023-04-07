@@ -12,6 +12,7 @@ BANDS=160m:0.75,80m:0.85,40m:0.95,20m:1.0,10m:0.9,6m:0.8,2m:0.7
 MODES=FT8:1.0,FT4:0.5,CW:0.5
 TRANSMISSION_PROBABILITY=0.65
 STICKINESS=0.9999
+REPORTER_ADDRESS=localhost:4739
 ```
 
 If `FREERUN` is `false`, and `RUNTIME` (e.g., "900s") is supplied, the program will run for the specified time.
