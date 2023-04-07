@@ -336,7 +336,7 @@ func (s *Station) Receive(transmission *Transmission) {
 
 	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 
-	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[2], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
+	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[1], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
 
 	// TODO check this if station was listening at this time, on this band and mode
 
