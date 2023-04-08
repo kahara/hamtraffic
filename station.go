@@ -180,17 +180,19 @@ type Transmission struct {
 }
 
 type Station struct {
-	Callsign            string
-	Antenna             string
-	BandModePairs       []BandModePair
-	CurrentBandModePair *BandModePair
-	Frequency           float64
-	TransmitEven        bool
-	TransmitPeriods     []time.Duration
-	Locale              *Locale
-	Neighbours          map[float64][]*Station
-	Receiver            chan *Transmission
-	Spotter             *spot.Spotter
+	Callsign                 string
+	Antenna                  string
+	BandModePairs            []BandModePair
+	CurrentBandModePair      *BandModePair
+	Frequency                float64
+	TransmitEven             bool
+	TransmitPeriods          []time.Duration
+	LastTransmissionTime     time.Time
+	LastTransmissionDuration time.Duration
+	Locale                   *Locale
+	Neighbours               map[float64][]*Station
+	Receiver                 chan *Transmission
+	Spotter                  *spot.Spotter
 }
 
 func NewStation(config *Config, w *World) *Station {
@@ -332,13 +334,18 @@ func (s *Station) PickBandModePair() {
 }
 
 func (s *Station) Receive(transmission *Transmission) {
-	//log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Receiving")
-
+	// Does the bandmodepair match
 	if fmt.Sprintf("%s@%s", transmission.Mode, transmission.Band) != s.CurrentBandModePair.Name {
 		return
 	}
 
-	// TODO check we were on the opposite time slot
+	// Was the other station transmitting at the same time as this one
+	if transmission.Time.Equal(s.LastTransmissionTime) ||
+		(transmission.Time.After(s.LastTransmissionTime) &&
+			transmission.Time.Before(s.LastTransmissionTime.Add(s.LastTransmissionDuration))) ||
+		transmission.Time.Equal(s.LastTransmissionTime.Add(s.LastTransmissionDuration)) {
+		return
+	}
 
 	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[1], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
@@ -354,9 +361,11 @@ func (s *Station) Run(t time.Time) *Transmission {
 			}
 
 			log.Debug().Time("time", t).Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Bool("even", s.TransmitEven).Dur("period", period).Msg("Transmitting")
+			s.LastTransmissionTime = t
+			s.LastTransmissionDuration = s.CurrentBandModePair.TransmitDuration
 			return &Transmission{
 				Station:   s,
-				Time:      time.Now().UTC(),
+				Time:      t,
 				Duration:  s.CurrentBandModePair.TransmitDuration,
 				Frequency: s.Frequency,
 				Band:      s.CurrentBandModePair.Band,
