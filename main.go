@@ -27,7 +27,7 @@ func Init() {
 	world = NewWorld()
 
 	for i := 0; i < config.StationCount; i++ {
-		stations = append(stations, NewStation(config, world))
+		stations = append(stations, NewStation(config, world, metrics["report_packets"]))
 	}
 
 	log.Debug().Msg("Computing neighbourhoods")

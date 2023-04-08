@@ -145,6 +145,8 @@ github.com/kahara/go-pskreporter-spot v0.0.0-20230211123842-cf880b64cdc5 h1:9Xg3
 github.com/kahara/go-pskreporter-spot v0.0.0-20230211123842-cf880b64cdc5/go.mod h1:KeJpkxtQQ4dId3a3tIsBdKA6LtgL9yoYfMQSEIdq7Qo=
 github.com/kahara/go-pskreporter-spot v0.0.0-20230408083226-f2c455810649 h1:ZMDgG2eWj3fS2GhTzWMIR10tLb06w5nN2I1cAjRCnI0=
 github.com/kahara/go-pskreporter-spot v0.0.0-20230408083226-f2c455810649/go.mod h1:KeJpkxtQQ4dId3a3tIsBdKA6LtgL9yoYfMQSEIdq7Qo=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230408164552-77fead57ea0b h1:ta+Xh+rGAPU6oFa8fsbYxfwOMj97/V5RCBMNO3tBsmg=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230408164552-77fead57ea0b/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=

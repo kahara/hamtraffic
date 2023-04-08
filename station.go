@@ -4,6 +4,7 @@ import (
 	"fmt"
 	spot "github.com/kahara/go-pskreporter-spot"
 	"github.com/paulmach/orb/geo"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"math/rand"
 	"time"
@@ -195,7 +196,7 @@ type Station struct {
 	Spotter                  *spot.Spotter
 }
 
-func NewStation(config *Config, w *World) *Station {
+func NewStation(config *Config, w *World, packetMetric *prometheus.CounterVec) *Station {
 	nextSuffix += 1
 	if nextSuffix > MaxStationCount-1 {
 		log.Fatal().Int("suffix", nextSuffix).Msg("too many suffixes, passing out")
@@ -252,7 +253,7 @@ func NewStation(config *Config, w *World) *Station {
 		BandModePairs: bandModePairs,
 		Locale:        locale,
 		Receiver:      make(chan *Transmission, 1000),
-		Spotter:       spot.NewSpotter(config.ReporterAddress, callsign, locale.Locators[2], antenna, SpotterSoftware, "", spot.SpotKind_CallsignFrequencyModeSourceLocatorFlowstart),
+		Spotter:       spot.NewSpotter(config.ReporterAddress, callsign, locale.Locators[2], antenna, SpotterSoftware, "", spot.SpotKind_CallsignFrequencyModeSourceLocatorFlowstart, packetMetric),
 	}
 
 	if rand.Float64() < 0.5 {

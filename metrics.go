@@ -33,6 +33,16 @@ func Metrics() {
 		"callsign",
 	})
 
+	metrics["report_packets"] = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: PrometheusNamespace,
+		Subsystem: "network",
+		Name:      "report_packets_total",
+		Help:      "Total report packets sent",
+	}, []string{
+		"network",
+		"remote",
+	})
+
 	http.Handle("/metrics", promhttp.Handler())
 	if err := http.ListenAndServe(PrometheusAddrPort, nil); err != nil {
 		log.Fatal().Err(err).Str("addrport", PrometheusAddrPort).Msg("Could not expose Prometheus metrics")
