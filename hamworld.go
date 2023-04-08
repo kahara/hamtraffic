@@ -49,6 +49,9 @@ Loop:
 		select {
 		case sig := <-sigs:
 			log.Info().Str("signal", sig.String()).Msg("Signal caught, preparing to exit")
+			for _, station := range stations {
+				station.Spotter.Close()
+			}
 			break Loop
 		case <-ticker.C:
 		}
