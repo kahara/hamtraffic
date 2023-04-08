@@ -7,7 +7,7 @@ All configuration takes place over environment variables. Here are the defaults:
 ```
 FREERUN=true
 RUNTIME= # n/a; this is parsed into a time.Duration
-STATION_COUNT=1500
+STATION_COUNT=2000
 BANDS=160m:0.75,80m:0.85,40m:0.95,20m:1.0,10m:0.9,6m:0.8,2m:0.7
 MODES=FT8:1.0,FT4:0.5,CW:0.5
 TRANSMISSION_PROBABILITY=0.65
