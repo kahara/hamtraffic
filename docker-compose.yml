@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  hamtraffic:
+    build:
+      context: .
+      dockerfile: docker/hamtraffic/Dockerfile
+    environment:
+      FREERUN: 'true'
+      STATION_COUNT: 2000
+      RECEIVER_ADDRESS: 'receiver:4739'
+
+  prometheus:
+    image: prom/prometheus:v2.37.6
+    user: '65534'
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    restart: always
+
+  grafana:
+    image: grafana/grafana:9.3.6
+    user: '472'
+    volumes:
+      - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./docker/grafana/provisioning/datasources/prometheus.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml
+      - ./docker/grafana/provisioning/dashboards/home.yaml:/etc/grafana/provisioning/dashboards/home.yaml
+      - ./docker/grafana/provisioning/dashboards/home.json:/var/lib/grafana/dashboards/home.json
+    environment:
+      GF_USERS_DEFAULT_THEME: light
+    ports:
+      - '3000:3000'
+    restart: always
+
+  receiver:
+    build:
+      context: docker/receiver
+    restart: always
