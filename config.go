@@ -15,7 +15,7 @@ const (
 	DefaultBands                   = "160m:0.75,80m:0.85,40m:0.95,20m:1.0,10m:0.9,6m:0.8,2m:0.7"
 	DefaultModes                   = "FT8:1.0,FT4:0.5,CW:0.5"
 	DefaultTransmissionProbability = 0.65
-	DefaultStickiness              = 0.9999
+	DefaultStickiness              = 0.999
 	DefaultReporterAddress         = "localhost:4739"
 
 	PrometheusAddrPort  = ":9108"
