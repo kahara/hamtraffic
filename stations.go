@@ -338,7 +338,7 @@ func (s *Station) Receive(transmission *Transmission) {
 
 	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[1], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
 
-	// TODO check this if station was listening at this time, on this band and mode
+	// TODO check if this station was listening at this time, on this band and mode
 
 	// TODO send an update towards the reporter
 }
@@ -347,7 +347,7 @@ func (s *Station) Run(t time.Time) *Transmission {
 	// Maybe decide to change band and mode
 	if rand.Float64() > config.Stickiness {
 		s.PickBandModePair()
-		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode, and is waiting until beginning of next minute before proceeding transmission")
+		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode")
 		return nil
 	}
 
