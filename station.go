@@ -334,23 +334,17 @@ func (s *Station) PickBandModePair() {
 func (s *Station) Receive(transmission *Transmission) {
 	//log.Debug().Str("sender", transmission.Station.Callsign).Str("receiver", s.Callsign).Str("band", transmission.Band).Str("mode", transmission.Mode).Msg("Receiving")
 
+	if fmt.Sprintf("%s@%s", transmission.Mode, transmission.Band) != s.CurrentBandModePair.Name {
+		return
+	}
+
+	// TODO check we were on the opposite time slot
+
 	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
-
 	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[1], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
-
-	// TODO check if this station was listening at this time, on this band and mode
-
-	// TODO send an update towards the reporter
 }
 
 func (s *Station) Run(t time.Time) *Transmission {
-	// Maybe decide to change band and mode
-	if rand.Float64() > config.Stickiness {
-		s.PickBandModePair()
-		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode")
-		return nil
-	}
-
 	for _, period := range s.TransmitPeriods {
 		if t.Sub(t.Truncate(time.Duration(time.Minute)).Add(period)).Abs() < (SmallestCommonDuration / 2) {
 			// Decide to transmit or not
@@ -373,4 +367,12 @@ func (s *Station) Run(t time.Time) *Transmission {
 	}
 
 	return nil
+}
+
+// Maybe decide to change band and mode
+func (s *Station) Adjust() {
+	if rand.Float64() > config.Stickiness {
+		s.PickBandModePair()
+		log.Debug().Str("callsign", s.Callsign).Str("bandmodepair", s.CurrentBandModePair.Name).Msg("Station changed band and mode")
+	}
 }

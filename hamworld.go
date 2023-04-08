@@ -46,6 +46,11 @@ Loop:
 			propagate(transmission)
 		}
 
+		// Adjust each station, maybe
+		for _, station := range stations {
+			station.Adjust()
+		}
+
 		select {
 		case sig := <-sigs:
 			log.Info().Str("signal", sig.String()).Msg("Signal caught, preparing to exit")
