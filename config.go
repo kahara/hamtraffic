@@ -10,7 +10,7 @@ import (
 const (
 	DefaultFreerun                 = true
 	DefaultRuntime                 = "900s"
-	DefaultStationCount            = 10000
+	DefaultStationCount            = 1500
 	MaxStationCount                = 65536
 	DefaultBands                   = "160m:0.75,80m:0.85,40m:0.95,20m:1.0,10m:0.9,6m:0.8,2m:0.7"
 	DefaultModes                   = "FT8:1.0,FT4:0.5,CW:0.5"

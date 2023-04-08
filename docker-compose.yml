@@ -7,7 +7,8 @@ services:
       dockerfile: docker/hamtraffic/Dockerfile
     environment:
       FREERUN: 'true'
-      STATION_COUNT: 10000
+      STATION_COUNT: 1500
+      RECEIVER_ADDRESS: 'receiver:4739'
 
   prometheus:
     image: prom/prometheus:v2.37.6
@@ -32,4 +33,9 @@ services:
       GF_USERS_DEFAULT_THEME: light
     ports:
       - '3000:3000'
+    restart: always
+
+  receiver:
+    build:
+      context: docker/receiver
     restart: always
