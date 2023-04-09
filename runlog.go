@@ -1,13 +1,28 @@
 package hamtraffic
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/rs/zerolog/log"
 	"os"
+	"time"
 )
 
 type Runlog struct {
 	f *os.File
+}
+
+type Logitem struct {
+	Receiver struct {
+		Callsign string `json:"callsign"`
+		Locator  string `json:"locator"`
+	} `json:"receiver"`
+
+	Spot struct {
+		Time      time.Time `json:"time"`
+		Frequency float64   `json:"frequency"`
+		Callsign  string    `json:"callsign"`
+		Locator   string    `json:"locator"`
+	} `json:"spot"`
 }
 
 func NewRunlog(path string) *Runlog {
@@ -26,6 +41,27 @@ func NewRunlog(path string) *Runlog {
 	return &runlog
 }
 
-func (r *Runlog) Log(item interface{}) {
-	log.Trace().Str("item", fmt.Sprintf("%+v", item)).Msg("")
+func (r *Runlog) Log(station *Station, transmission *Transmission) {
+	var (
+		logitem Logitem
+	)
+
+	logitem.Receiver.Callsign = station.Callsign
+	logitem.Receiver.Locator = station.Locale.Locators[2]
+	logitem.Spot.Time = transmission.Time
+	logitem.Spot.Frequency = transmission.Frequency
+	logitem.Spot.Callsign = transmission.Station.Callsign
+	logitem.Spot.Locator = transmission.Station.Locale.Locators[1]
+
+	log.Trace().Any("logitem", logitem).Msg("")
+
+	if buf, err := json.Marshal(logitem); err != nil {
+		log.Err(err).Msg("")
+	} else {
+		if _, err := r.f.Write(buf); err != nil {
+			log.Err(err).Msg("")
+		} else {
+			_, _ = r.f.Write([]byte{'\n'})
+		}
+	}
 }

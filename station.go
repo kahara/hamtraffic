@@ -348,9 +348,9 @@ func (s *Station) Receive(transmission *Transmission, runlog *Runlog) {
 		return
 	}
 
-	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[1], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
-	runlog.Log(transmission)
+	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
+	runlog.Log(s, transmission)
 }
 
 func (s *Station) Run(t time.Time) *Transmission {
