@@ -32,6 +32,7 @@ type Config struct {
 	TransmissionProbability float64
 	Stickiness              float64
 	ReporterAddress         string
+	RunlogPath              string
 }
 
 func NewConfig() *Config {
@@ -122,6 +123,9 @@ func NewConfig() *Config {
 	} else {
 		config.ReporterAddress = ra
 	}
+
+	// Runlog path
+	config.RunlogPath = os.Getenv("RUNLOG_PATH")
 
 	log.Info().Any("config", config).Msg("Configuration complete")
 

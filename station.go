@@ -334,7 +334,7 @@ func (s *Station) PickBandModePair() {
 	}
 }
 
-func (s *Station) Receive(transmission *Transmission) {
+func (s *Station) Receive(transmission *Transmission, runlog *Runlog) {
 	// Does the bandmodepair match
 	if fmt.Sprintf("%s@%s", transmission.Mode, transmission.Band) != s.CurrentBandModePair.Name {
 		return
@@ -350,6 +350,7 @@ func (s *Station) Receive(transmission *Transmission) {
 
 	metrics["receptions"].WithLabelValues(transmission.Band, transmission.Mode, s.Callsign).Inc()
 	s.Spotter.Feed(spot.NewSpot(transmission.Station.Callsign, transmission.Station.Locale.Locators[1], uint64(transmission.Frequency), 0, 0, transmission.Mode, 1, uint32(transmission.Time.UTC().Unix())))
+	runlog.Log(transmission)
 }
 
 func (s *Station) Run(t time.Time) *Transmission {
