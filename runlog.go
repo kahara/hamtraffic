@@ -20,6 +20,7 @@ type Logitem struct {
 	Spot struct {
 		Time      time.Time `json:"time"`
 		Frequency float64   `json:"frequency"`
+		Mode      string    `json:"mode"`
 		Callsign  string    `json:"callsign"`
 		Locator   string    `json:"locator"`
 	} `json:"spot"`
@@ -55,6 +56,7 @@ func (r *Runlog) Log(station *Station, transmission *Transmission) {
 	logitem.Receiver.Locator = station.Locale.Locators[2]
 	logitem.Spot.Time = transmission.Time
 	logitem.Spot.Frequency = transmission.Frequency
+	logitem.Spot.Mode = transmission.Mode
 	logitem.Spot.Callsign = transmission.Station.Callsign
 	logitem.Spot.Locator = transmission.Station.Locale.Locators[1]
 
