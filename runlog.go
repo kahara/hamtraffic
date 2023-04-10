@@ -32,16 +32,21 @@ func NewRunlog(path string) *Runlog {
 		runlog Runlog
 	)
 
-	if f, err = os.OpenFile(config.RunlogPath, os.O_WRONLY|os.O_CREATE, 0664); err != nil {
-		log.Fatal().Err(err).Str("path", config.RunlogPath).Msg("")
+	if path != "" {
+		if f, err = os.OpenFile(config.RunlogPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0664); err != nil {
+			log.Fatal().Err(err).Str("path", config.RunlogPath).Msg("")
+		}
+		runlog.f = f
 	}
-
-	runlog.f = f
 
 	return &runlog
 }
 
 func (r *Runlog) Log(station *Station, transmission *Transmission) {
+	if r.f == nil {
+		return
+	}
+
 	var (
 		logitem Logitem
 	)
@@ -53,13 +58,11 @@ func (r *Runlog) Log(station *Station, transmission *Transmission) {
 	logitem.Spot.Callsign = transmission.Station.Callsign
 	logitem.Spot.Locator = transmission.Station.Locale.Locators[1]
 
-	log.Trace().Any("logitem", logitem).Msg("")
-
 	if buf, err := json.Marshal(logitem); err != nil {
-		log.Err(err).Msg("")
+		log.Err(err).Msg("Runlog marshalling failed")
 	} else {
 		if _, err := r.f.Write(buf); err != nil {
-			log.Err(err).Msg("")
+			log.Err(err).Msg("Runlog writing failed")
 		} else {
 			_, _ = r.f.Write([]byte{'\n'})
 		}

@@ -37,9 +37,7 @@ func Init() {
 	}
 
 	// Open runlog file, maybe
-	if config.RunlogPath != "" {
-		runlog = NewRunlog(config.RunlogPath)
-	}
+	runlog = NewRunlog(config.RunlogPath)
 
 	// Start running at the start of next minute
 	start = time.Now().UTC()
