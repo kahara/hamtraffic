@@ -3,7 +3,7 @@ module github.com/kahara/hamtraffic
 go 1.19
 
 require (
-	github.com/kahara/go-pskreporter-spot v0.0.0-20230410080548-ca0f5f485bde
+	github.com/kahara/go-pskreporter-spot v0.0.0-20230410092835-357998bdda2b
 	github.com/logocomune/maidenhead v1.0.0
 	github.com/paulmach/orb v0.8.0
 	github.com/prometheus/client_golang v1.14.0
