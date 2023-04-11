@@ -149,6 +149,14 @@ github.com/kahara/go-pskreporter-spot v0.0.0-20230408164552-77fead57ea0b h1:ta+X
 github.com/kahara/go-pskreporter-spot v0.0.0-20230408164552-77fead57ea0b/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
 github.com/kahara/go-pskreporter-spot v0.0.0-20230408203950-dbd7ea48c4d8 h1:SdAkVdOy9XaqCpFUmLD9so5vNiweemAtNXVrqeIYKZY=
 github.com/kahara/go-pskreporter-spot v0.0.0-20230408203950-dbd7ea48c4d8/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410080548-ca0f5f485bde h1:tVqQL/3WasvmWK6BsK6FE7OcozlWAKwLvDCe/vLmNOs=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410080548-ca0f5f485bde/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410091054-b14e3886b1e1 h1:ipDsZFnktItPwA1zwU6ZkKy+Ev1MLI+T/9fFJHIyDXk=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410091054-b14e3886b1e1/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410091339-08e0a391675c h1:+ET/r101KIB58aNJoqlenjN0DX2EWO9WtUsab2FMQss=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410091339-08e0a391675c/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410092835-357998bdda2b h1:bCRgDARZABXY5IAHZswb0wcyti2A6pt30tDnsUQ2eHw=
+github.com/kahara/go-pskreporter-spot v0.0.0-20230410092835-357998bdda2b/go.mod h1:0MEivDFV7GJwC9S449voW5C2dFQQjp9Y4XOOIDI8ezA=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=

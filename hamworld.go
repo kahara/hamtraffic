@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Run(start, deadline *time.Time, stations []*Station) {
+func Run(start, deadline *time.Time, stations []*Station, runlog *Runlog) {
 	// FIXME this currently blocks until the main loop is entered
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -43,7 +43,7 @@ Loop:
 
 		// Propagate each transmission
 		for _, transmission := range transmissions {
-			propagate(transmission)
+			propagate(transmission, runlog)
 		}
 
 		// Adjust each station, maybe
@@ -62,5 +62,3 @@ Loop:
 		}
 	}
 }
-
-// TODO log results for integration testing purposes

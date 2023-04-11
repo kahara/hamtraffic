@@ -13,6 +13,7 @@ MODES=FT8:1.0,FT4:0.5,CW:0.5
 TRANSMISSION_PROBABILITY=0.65
 STICKINESS=0.999
 REPORTER_ADDRESS=localhost:4739
+RUNLOG_PATH= # n/a; this is a /path/to/file.jsonl
 ```
 
 If `FREERUN` is `false`, and `RUNTIME` (e.g., "900s") is supplied, the program will run for the specified time.
@@ -29,6 +30,11 @@ get multiplied together.
 `TRANSMISSION_PROBABILITY` represents the likelihood of a station transmitting during a given slot.
 
 `STICKINESS` represents the likelihood of a station to stick to the band and mode it's currently working.
+
+`REPORTER_ADDRESS` tells the system where to send report packets for ingestion.
+
+`RUNLOG_PATH`, if specified, will enable writing a [JSONL-formatted](https://jsonlines.org/) test run log to a file.
+This file could then be used to verify that the reports got ingested by the reporter correctly, for example.
 
 ## Instrumentation
 

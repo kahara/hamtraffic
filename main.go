@@ -14,6 +14,7 @@ func Init() {
 	var (
 		stations        []*Station
 		start, deadline time.Time
+		runlog          *Runlog
 	)
 
 	go Metrics()
@@ -35,15 +36,18 @@ func Init() {
 		station.ComputeNeighbourhood(stations)
 	}
 
+	// Open runlog file, maybe
+	runlog = NewRunlog(config.RunlogPath)
+
 	// Start running at the start of next minute
 	start = time.Now().UTC()
 	start = start.Truncate(time.Duration(time.Minute))
 	start = start.Add(time.Minute)
 
 	if config.Freerun {
-		Run(&start, nil, stations)
+		Run(&start, nil, stations, runlog)
 	} else {
 		deadline = start.Add(*config.Runtime)
-		Run(&start, &deadline, stations)
+		Run(&start, &deadline, stations, runlog)
 	}
 }

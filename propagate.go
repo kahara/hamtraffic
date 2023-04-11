@@ -13,7 +13,7 @@ const DistanceWiggle = 0.5
 
 var bandmodepairToDistance map[string]float64
 
-func propagate(transmission *Transmission) {
+func propagate(transmission *Transmission, runlog *Runlog) {
 	if bandmodepairToDistance == nil {
 		bandmodepairToDistance = func() map[string]float64 {
 			var (
@@ -48,7 +48,7 @@ func propagate(transmission *Transmission) {
 
 			// Send; receiver decides if it was receiving at the time of transmission
 			if distance >= d {
-				station.Receive(transmission)
+				station.Receive(transmission, runlog)
 			}
 		}
 	}
